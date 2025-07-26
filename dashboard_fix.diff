@@ -1,0 +1,78 @@
+=======
+import React, { useEffect, useState } from 'react';
+
+const calculateCurrentStreak = (tasks) => {
+  const completedDates = new Set(
+    tasks.filter(t => t.completed && t.updatedAt).map(t => t.updatedAt.slice(0, 10))
+  );
+  let streak = 0;
+  let currentDate = new Date();
+  while (true) {
+    const dateStr = currentDate.toISOString().slice(0, 10);
+    if (completedDates.has(dateStr)) {
+      streak++;
+      currentDate.setDate(currentDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  return streak;
+};
+>>>>>>> REPLACE
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError('');
+
+  if (loading) {
+    return <div className="text-center py-10">Loading dashboard...</div>;
+  }
+
+<<<<<<< SEARCH
+            {recentTasks.map((task) => (
+              <div key={task._id} className="flex items-center justify-between p-3 bg-background rounded-lg border border-border">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-4 h-4 rounded-full border-2 ${
+                    task.completed
+                      ? 'bg-success border-success'
+                      : 'border-muted-foreground'
+                  }`}>
+                    {task.completed && <div className="w-full h-full rounded-full bg-success" />}
+                  </div>
+                  <div>
+                    <p className={`text-sm ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                      {task.title}
+                    </p>
+                    <span className="text-xs text-muted-foreground">{task.category}</span>
+                  </div>
+                </div>
+                {task.completed && <Star className="w-4 h-4 text-warning fill-warning" />}
+              </div>
+            ))}
+=======
+            {recentTasks.map((task) => (
+              <div
+                key={task._id}
+                className="flex items-center justify-between p-3 bg-background rounded-lg border border-border hover:cursor-pointer"
+                onClick={() => toggleTaskCompletion(task)}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className={`w-4 h-4 rounded-full border-2 ${
+                    task.completed
+                      ? 'bg-success border-success'
+                      : 'border-muted-foreground'
+                  }`}>
+                    {task.completed && <div className="w-full h-full rounded-full bg-success" />}
+                  </div>
+                  <div>
+                    <p className={`text-sm ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                      {task.title}
+                    </p>
+                    <span className="text-xs text-muted-foreground">{task.category}</span>
+                  </div>
+                </div>
+                {task.completed && <Star className="w-4 h-4 text-warning fill-warning" />}
+              </div>
+            ))}
