@@ -77,30 +77,9 @@ export const getLeetCodeContests = async (req, res) => {
   try {
     console.log('Fetching LeetCode contests...');
     
-    // LeetCode doesn't have a public API for contests, so we'll use a web scraping approach
-    // For now, we'll return a mock response that simulates real contest data
-    const mockLeetCodeContests = [
-      {
-        id: 'leetcode-weekly-375',
-        name: 'LeetCode Weekly Contest 375',
-        startTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-        endTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 90 * 60 * 1000).toISOString(),
-        url: 'https://leetcode.com/contest/weekly-contest-375',
-        difficulty: 'Intermediate',
-        participants: 15000
-      },
-      {
-        id: 'leetcode-biweekly-120',
-        name: 'LeetCode Biweekly Contest 120',
-        startTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        endTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000 + 90 * 60 * 1000).toISOString(),
-        url: 'https://leetcode.com/contest/biweekly-contest-120',
-        difficulty: 'Advanced',
-        participants: 20000
-      }
-    ];
-
-    res.json({ success: true, contests: mockLeetCodeContests });
+    // LeetCode doesn't have a public API for contests. You must use web scraping or unofficial APIs.
+    // For now, return an empty list to avoid fake data.
+    res.json({ success: true, contests: [] });
   } catch (err) {
     console.error('Error fetching LeetCode contests:', err);
     res.status(500).json({ success: false, message: 'Failed to fetch LeetCode contests' });
@@ -142,30 +121,9 @@ export const getCodeChefContests = async (req, res) => {
   try {
     console.log('Fetching CodeChef contests...');
     
-    // CodeChef doesn't have a public API, so we'll use web scraping
-    // For now, we'll return mock data that simulates real contest data
-    const mockCodeChefContests = [
-      {
-        id: 'codechef-starters-120',
-        name: 'CodeChef Starters 120',
-        startTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-        endTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000 + 120 * 60 * 1000).toISOString(),
-        url: 'https://www.codechef.com/START120',
-        difficulty: 'Beginner',
-        participants: 12000
-      },
-      {
-        id: 'codechef-lunchtime-2024',
-        name: 'CodeChef Lunchtime 2024',
-        startTime: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
-        endTime: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000 + 180 * 60 * 1000).toISOString(),
-        url: 'https://www.codechef.com/LTIME2024',
-        difficulty: 'Advanced',
-        participants: 15000
-      }
-    ];
-
-    res.json({ success: true, contests: mockCodeChefContests });
+    // CodeChef doesn't have a public API for contests. You must use web scraping or unofficial APIs.
+    // For now, return an empty list to avoid fake data.
+    res.json({ success: true, contests: [] });
   } catch (err) {
     console.error('Error fetching CodeChef contests:', err);
     res.status(500).json({ success: false, message: 'Failed to fetch CodeChef contests' });

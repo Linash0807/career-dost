@@ -46,6 +46,7 @@ export const DailyTracker = () => {
   // Heatmap range state
   // Heatmap phase: which previous 6 months to show
   const [heatmapPhase, setHeatmapPhase] = useState(0); // 0 = latest, 1 = previous, etc.
+  // ...no contest state...
   // ...existing code...
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState('');
@@ -89,6 +90,9 @@ export const DailyTracker = () => {
     };
     fetchStreak();
   }, []);
+
+  // Fetch contests from backend
+  // ...no contest logic...
 
   const addTask = async () => {
     if (!newTaskTitle.trim()) return;
@@ -172,7 +176,8 @@ export const DailyTracker = () => {
         <Card className="p-4 w-full">
           <div className="flex flex-row items-center gap-8">
             {/* Heatmap Section */}
-            <div className="flex flex-col items-center justify-center">
+            <div className="flex flex-col items-center justify-cent
+            er">
               <h3 className="text-lg font-semibold mb-2">Streak</h3>
               {/* Filter loginDates for selected range */}
               {(() => {
@@ -217,7 +222,9 @@ export const DailyTracker = () => {
                 if (!filteredDates.includes(todayStr)) {
                   filteredDates = [...filteredDates, todayStr];
                 }
-                return <div className="w-full mx-auto"><HeapMap loginDates={filteredDates} daysCount={183} /></div>;
+                // Remove duplicate dates to avoid duplicate keys
+                const uniqueDates = Array.from(new Set(filteredDates));
+                return <div className="w-full mx-auto"><HeapMap loginDates={uniqueDates} daysCount={183} /></div>;
               })()}
               <div className="flex gap-4 justify-center mt-4">
                 <select
