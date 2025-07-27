@@ -8,8 +8,9 @@ import NotFound from "./pages/NotFound";
 import Register from "./pages/register";
 import Login from "./pages/login";
 import ProtectedRoute from "./pages/ProtectedRoute";
-import { AuthProvider } from "./hooks/useAuth.tsx";
+import { AuthProvider } from "@/hooks/useAuth";
 import { Dashboard } from "./components/Dashboard";
+import { CareerPath } from "./components/CareerPath";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,11 @@ const App = () => (
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Index />
+              </ProtectedRoute>
+            } />
+            <Route path="/career" element={
+              <ProtectedRoute>
+                <CareerPath />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

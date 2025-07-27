@@ -11,6 +11,9 @@ const userSchema = new mongoose.Schema({
   contests: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contest' }],
   resources: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Resource' }],
   notifications: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Notification' }],
+  loginDates: [{ type: Date }], // Track login dates for streaks
+  currentStreak: { type: Number, default: 0 },
+  maxStreak: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }
 });
 

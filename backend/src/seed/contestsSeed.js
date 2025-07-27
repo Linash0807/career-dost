@@ -1,0 +1,1 @@
+// All static contest data and seeding logic removed.

@@ -1,10 +1,52 @@
 import Task from '../models/Task.js';
 
+// Helper function to validate task input
+const validateTaskInput = (data, isUpdate = false) => {
+  const { title, category, priority, dueDate } = data;
+  const categories = ['DSA', 'Projects', 'Placements', 'Learning', 'Academic'];
+  const priorities = ['Low', 'Medium', 'High'];
+
+  if (!isUpdate) {
+    if (!title || typeof title !== 'string' || title.trim() === '') {
+      return 'Title is required and must be a non-empty string.';
+    }
+    if (category && !categories.includes(category)) {
+      return `Category must be one of: ${categories.join(', ')}`;
+    }
+    if (priority && !priorities.includes(priority)) {
+      return `Priority must be one of: ${priorities.join(', ')}`;
+    }
+    if (dueDate && isNaN(Date.parse(dueDate))) {
+      return 'DueDate must be a valid date string.';
+    }
+  } else {
+    // For updates, only validate fields if present
+    if ('title' in data && (typeof title !== 'string' || title.trim() === '')) {
+      return 'Title must be a non-empty string.';
+    }
+    if ('category' in data && !categories.includes(category)) {
+      return `Category must be one of: ${categories.join(', ')}`;
+    }
+    if ('priority' in data && !priorities.includes(priority)) {
+      return `Priority must be one of: ${priorities.join(', ')}`;
+    }
+    if ('dueDate' in data && isNaN(Date.parse(dueDate))) {
+      return 'DueDate must be a valid date string.';
+    }
+  }
+  return null;
+};
+
 // Create a new task
 export const createTask = async (req, res) => {
   try {
     const { title, category, priority, dueDate } = req.body;
     const userId = req.user._id;
+
+    const validationError = validateTaskInput({ title, category, priority, dueDate });
+    if (validationError) {
+      return res.status(400).json({ message: validationError });
+    }
 
     const task = new Task({
       title,
@@ -30,7 +72,8 @@ export const getTasks = async (req, res) => {
     res.json({ tasks });
   } catch (error) {
     console.error('Error fetching tasks:', error);
-    res.status(500).json({ message: 'Server error fetching tasks' });
+    console.error(error.stack);
+    res.status(500).json({ message: 'Server error fetching tasks', error: error.message });
   }
 };
 
@@ -40,6 +83,11 @@ export const updateTask = async (req, res) => {
     const userId = req.user._id;
     const taskId = req.params.id;
     const updates = req.body;
+
+    const validationError = validateTaskInput(updates, true); // allow partial update
+    if (validationError) {
+      return res.status(400).json({ message: validationError });
+    }
 
     const task = await Task.findOneAndUpdate(
       { _id: taskId, user: userId },

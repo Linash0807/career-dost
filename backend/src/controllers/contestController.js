@@ -1,4 +1,5 @@
 import Contest from '../models/Contest.js';
+import axios from 'axios';
 
 // Create a new contest
 export const createContest = async (req, res) => {
@@ -17,9 +18,12 @@ export const createContest = async (req, res) => {
 export const getContests = async (req, res) => {
   try {
     const user = req.user.userId;
+    console.log('Getting contests for user:', user);
     const contests = await Contest.find({ user });
+    console.log('Found contests:', contests.length);
     res.json({ contests });
   } catch (err) {
+    console.error('Error getting contests:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
@@ -47,6 +51,232 @@ export const deleteContest = async (req, res) => {
     if (!contest) return res.status(404).json({ message: 'Contest not found' });
     res.json({ message: 'Contest deleted' });
   } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+// Toggle reminder for a contest
+export const toggleReminder = async (req, res) => {
+  try {
+    const user = req.user.userId;
+    const { id } = req.params;
+    const contest = await Contest.findOne({ _id: id, user });
+    if (!contest) return res.status(404).json({ message: 'Contest not found' });
+    
+    contest.reminderSet = !contest.reminderSet;
+    await contest.save();
+    
+    res.json({ contest });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+// Fetch real-time LeetCode contests
+export const getLeetCodeContests = async (req, res) => {
+  try {
+    console.log('Fetching LeetCode contests...');
+    
+    // LeetCode doesn't have a public API for contests, so we'll use a web scraping approach
+    // For now, we'll return a mock response that simulates real contest data
+    const mockLeetCodeContests = [
+      {
+        id: 'leetcode-weekly-375',
+        name: 'LeetCode Weekly Contest 375',
+        startTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+        endTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 90 * 60 * 1000).toISOString(),
+        url: 'https://leetcode.com/contest/weekly-contest-375',
+        difficulty: 'Intermediate',
+        participants: 15000
+      },
+      {
+        id: 'leetcode-biweekly-120',
+        name: 'LeetCode Biweekly Contest 120',
+        startTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        endTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000 + 90 * 60 * 1000).toISOString(),
+        url: 'https://leetcode.com/contest/biweekly-contest-120',
+        difficulty: 'Advanced',
+        participants: 20000
+      }
+    ];
+
+    res.json({ success: true, contests: mockLeetCodeContests });
+  } catch (err) {
+    console.error('Error fetching LeetCode contests:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch LeetCode contests' });
+  }
+};
+
+// Fetch real-time Codeforces contests
+export const getCodeforcesContests = async (req, res) => {
+  try {
+    console.log('Fetching Codeforces contests...');
+    
+    // Codeforces has a public API
+    const response = await axios.get('https://codeforces.com/api/contest.list');
+    const contests = response.data.result || [];
+    
+    // Filter upcoming contests and format them
+    const upcomingContests = contests
+      .filter(contest => contest.phase === 'BEFORE')
+      .slice(0, 10) // Get next 10 contests
+      .map(contest => ({
+        id: contest.id.toString(),
+        name: contest.name,
+        startTime: new Date(contest.startTimeSeconds * 1000).toISOString(),
+        endTime: new Date((contest.startTimeSeconds + contest.durationSeconds) * 1000).toISOString(),
+        url: `https://codeforces.com/contest/${contest.id}`,
+        difficulty: contest.type === 'CF' ? 'Intermediate' : 'Beginner',
+        participants: 0 // Codeforces API doesn't provide participant count
+      }));
+
+    res.json({ success: true, contests: upcomingContests });
+  } catch (err) {
+    console.error('Error fetching Codeforces contests:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch Codeforces contests' });
+  }
+};
+
+// Fetch real-time CodeChef contests
+export const getCodeChefContests = async (req, res) => {
+  try {
+    console.log('Fetching CodeChef contests...');
+    
+    // CodeChef doesn't have a public API, so we'll use web scraping
+    // For now, we'll return mock data that simulates real contest data
+    const mockCodeChefContests = [
+      {
+        id: 'codechef-starters-120',
+        name: 'CodeChef Starters 120',
+        startTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        endTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000 + 120 * 60 * 1000).toISOString(),
+        url: 'https://www.codechef.com/START120',
+        difficulty: 'Beginner',
+        participants: 12000
+      },
+      {
+        id: 'codechef-lunchtime-2024',
+        name: 'CodeChef Lunchtime 2024',
+        startTime: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+        endTime: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000 + 180 * 60 * 1000).toISOString(),
+        url: 'https://www.codechef.com/LTIME2024',
+        difficulty: 'Advanced',
+        participants: 15000
+      }
+    ];
+
+    res.json({ success: true, contests: mockCodeChefContests });
+  } catch (err) {
+    console.error('Error fetching CodeChef contests:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch CodeChef contests' });
+  }
+};
+
+// Save real-time contests to user's database
+export const saveRealTimeContests = async (req, res) => {
+  try {
+    const user = req.user.userId;
+    const { contests } = req.body;
+    
+    // Clear existing contests for this user
+    await Contest.deleteMany({ user: user });
+    
+    // Save new contests
+    const contestsWithUser = contests.map(contest => ({
+      ...contest,
+      user: user
+    }));
+    
+    const savedContests = await Contest.insertMany(contestsWithUser);
+    
+    res.json({ 
+      success: true, 
+      message: `Saved ${savedContests.length} contests`,
+      contests: savedContests 
+    });
+  } catch (err) {
+    console.error('Error saving real-time contests:', err);
+    res.status(500).json({ success: false, message: 'Failed to save contests' });
+  }
+};
+
+// Manual seed contests for testing
+export const seedContests = async (req, res) => {
+  try {
+    const user = req.user.userId;
+    console.log('Manual seeding contests for user:', user);
+    
+    const contestsData = [
+      {
+        name: "LeetCode Weekly Contest 375",
+        platform: "LeetCode",
+        startTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+        endTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 90 * 60 * 1000),
+        url: "https://leetcode.com/contest/weekly-contest-375",
+        difficulty: "Intermediate",
+        participants: 15000,
+        reminderSet: false,
+        user: user
+      },
+      {
+        name: "Codeforces Round 920 (Div. 3)",
+        platform: "Codeforces",
+        startTime: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+        endTime: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000 + 135 * 60 * 1000),
+        url: "https://codeforces.com/contest/1921",
+        difficulty: "Beginner",
+        participants: 8000,
+        reminderSet: true,
+        user: user
+      },
+      {
+        name: "CodeChef Starters 120",
+        platform: "CodeChef",
+        startTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        endTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000 + 120 * 60 * 1000),
+        url: "https://www.codechef.com/START120",
+        difficulty: "Beginner",
+        participants: 12000,
+        reminderSet: false,
+        user: user
+      },
+      {
+        name: "AtCoder Beginner Contest 340",
+        platform: "AtCoder",
+        startTime: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
+        endTime: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000 + 100 * 60 * 1000),
+        url: "https://atcoder.jp/contests/abc340",
+        difficulty: "Beginner",
+        participants: 5000,
+        reminderSet: true,
+        user: user
+      },
+      {
+        name: "HackerRank Weekly Challenge",
+        platform: "HackerRank",
+        startTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+        endTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000 + 60 * 60 * 1000),
+        url: "https://www.hackerrank.com/contests/weekly-challenge",
+        difficulty: "Intermediate",
+        participants: 3000,
+        reminderSet: false,
+        user: user
+      }
+    ];
+
+    // Clear existing contests for this user
+    await Contest.deleteMany({ user: user });
+    
+    // Insert new contests
+    const result = await Contest.insertMany(contestsData);
+    console.log(`✅ Manual seeding successful! Created ${result.length} contests for user ${user}`);
+    
+    res.json({ 
+      message: `Successfully seeded ${result.length} contests`,
+      contests: result 
+    });
+  } catch (err) {
+    console.error('❌ Error in manual seeding:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };

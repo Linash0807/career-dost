@@ -1,7 +1,7 @@
 // Centralized API utility for authenticated requests
 import axios from 'axios';
 
-const API_BASE = '/api';
+const API_BASE = 'http://localhost:5000/api';
 
 export const getToken = () => localStorage.getItem('token');
 

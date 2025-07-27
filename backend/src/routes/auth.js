@@ -1,8 +1,10 @@
 import express from 'express';
-import { register, login } from '../controllers/authController.js';
+import { register, login, getStreakStats } from '../controllers/authController.js';
 import auth from '../middleware/auth.js';
 
 const router = express.Router();
+// GET /api/auth/streak (protected)
+router.get('/streak', auth, getStreakStats);
 
 
 // POST /api/auth/register
