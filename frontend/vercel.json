@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "https://career-dost.onrender.com/api/$1" }
+  ]
+}
