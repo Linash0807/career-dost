@@ -1,7 +1,7 @@
 // Centralized API utility for authenticated requests
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'https://career-dost.onrender.com/api';
 
 export const getToken = () => localStorage.getItem('token');
 
