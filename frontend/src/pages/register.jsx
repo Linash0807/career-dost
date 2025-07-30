@@ -12,10 +12,10 @@ const Register = () => {
     const navigate = useNavigate();
     const { login } = useAuth();
 
-    const handleRegister = async (e) => {
+const handleRegister = async (e) => {
         e.preventDefault();
         try {
-            const response = await api.post('http://localhost:8080/api/auth/register', { name, email, password });
+            const response = await api.post('/auth/register', { name, email, password });
             navigate('/login');
         } catch (err) {
             setError(err.response ? err.response.data.message : 'Registration failed');
