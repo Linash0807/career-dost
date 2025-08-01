@@ -43,9 +43,9 @@ export const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
             </div>
             <div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-700 bg-clip-text text-transparent">
-                CareerComp
+                CareerDost
               </h1>
-              <p className="text-xs text-gray-500 font-medium">BTech Career Companion</p>
+             {/* <p className="text-xs text-gray-500 font-medium">BTech Career Companion</p>*/}
             </div>
           </div>
           
@@ -91,7 +91,7 @@ export const Navigation = ({ activeTab, onTabChange }: NavigationProps) => {
             </div>
             <div>
               <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-700 bg-clip-text text-transparent">
-                CareerComp
+                CareerDost
               </h1>
             </div>
           </div>
