@@ -7,8 +7,12 @@ import authRoutes from './routes/auth.js';
 import careerPathRoutes from './routes/careerPath.js';
 import contestRoutes from './routes/contest.js';
 import resourceRoutes from './routes/resource.js';
+import analyticsRoutes from './routes/analytics.routes.js';
+import goalRoutes from './routes/goal.routes.js';
 import leetcodeRoutes from './routes/leetcode.js';
 import codeforcesRoutes from './routes/codeforces.js';
+import forumRoutes from './routes/forum.js';
+import aiRoutes from './routes/ai.routes.js';
 import seedCareerPaths from './seed/careerPathsSeed.js';
 dotenv.config();
 
@@ -37,35 +41,47 @@ app.use('/api/resources', resourceRoutes);
 // Contest routes
 app.use('/api/contests', contestRoutes);
 
-  
+
 // LeetCode routes
 app.use('/api/leetcode', leetcodeRoutes);
 
 // Codeforces routes
 app.use('/api/codeforces', codeforcesRoutes);
 
+// Forum routes
+app.use('/api/forum', forumRoutes);
+
+// Analytics routes
+app.use('/api/analytics', analyticsRoutes);
+
+// Goal routes
+app.use('/api/goals', goalRoutes);
+
+// AI routes
+app.use('/api/ai', aiRoutes);
+
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/career-dost', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(async () => {
-  console.log('MongoDB connected');
-  
-  // Seed career paths on startup
-  try {
-    await seedCareerPaths();
-  } catch (error) {
-    console.error('Error seeding career paths:', error);
-  }
-  
-  
-  // Start server
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  .then(async () => {
+    console.log('MongoDB connected');
+
+    // Seed career paths on startup
+    try {
+      await seedCareerPaths();
+    } catch (error) {
+      console.error('Error seeding career paths:', error);
+    }
+
+
+    // Start server
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('MongoDB connection error:', err);
   });
-})
-.catch((err) => {
-  console.error('MongoDB connection error:', err);
-});

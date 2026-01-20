@@ -16,8 +16,8 @@ router.post('/login', login);
 // GET /api/auth/profile (protected)
 router.get('/profile', auth, async (req, res) => {
   try {
-    // req.user.userId is set by auth middleware
-    const userId = req.user.userId;
+    // req.user._id is set by auth middleware
+    const userId = req.user._id;
     const user = await (await import('../models/User.js')).default.findById(userId).select('-password');
     if (!user) {
       return res.status(404).json({ message: 'User not found' });

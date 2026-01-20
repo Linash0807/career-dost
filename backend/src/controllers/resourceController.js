@@ -1,11 +1,25 @@
 import Resource from '../models/Resource.js';
 
 // Create a new resource
+// Create a new resource
 export const createResource = async (req, res) => {
   try {
-    const { title, url, domain, difficulty, description } = req.body;
-    const user = req.user.userId;
-    const resource = new Resource({ title, url, domain, difficulty, description, submittedBy: user });
+    const { title, description, type, url, category, tags, difficulty, isPremium } = req.body;
+    // const user = req.user.userId; // Commented out for now if auth is optional or mixed
+
+    const resource = new Resource({
+      title,
+      description,
+      type,
+      url,
+      category,
+      tags,
+      difficulty,
+      isPremium,
+      // submittedBy: user,
+      approved: true // Auto-approve for now
+    });
+
     await resource.save();
     res.status(201).json({ resource });
   } catch (err) {
@@ -13,10 +27,24 @@ export const createResource = async (req, res) => {
   }
 };
 
-// Get all resources
+// Get all resources with filtering
 export const getResources = async (req, res) => {
   try {
-    const resources = await Resource.find({ approved: true });
+    const { category, type, difficulty, search } = req.query;
+    const query = { approved: true };
+
+    if (category) query.category = category;
+    if (type) query.type = type;
+    if (difficulty) query.difficulty = difficulty;
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { tags: { $in: [new RegExp(search, "i")] } },
+      ];
+    }
+
+    const resources = await Resource.find(query).sort({ createdAt: -1 });
     res.json({ resources });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
