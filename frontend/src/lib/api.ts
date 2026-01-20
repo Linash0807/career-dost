@@ -3,6 +3,10 @@ import axios from 'axios';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+if (import.meta.env.PROD && API_BASE.includes('localhost')) {
+  console.warn('API_BASE is set to localhost in production mode. Requests will likely fail.');
+}
+
 export const getToken = () => localStorage.getItem('token');
 
 export const api = axios.create({
