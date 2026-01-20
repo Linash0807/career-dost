@@ -5,7 +5,7 @@ import axios from 'axios';
 export const createContest = async (req, res) => {
   try {
     const { name, platform, startTime, endTime, url, reminderSet } = req.body;
-    const user = req.user.userId;
+    const user = req.user._id;
     const contest = new Contest({ name, platform, startTime, endTime, url, reminderSet, user });
     await contest.save();
     res.status(201).json({ contest });
@@ -17,7 +17,7 @@ export const createContest = async (req, res) => {
 // Get all contests for the user
 export const getContests = async (req, res) => {
   try {
-    const user = req.user.userId;
+    const user = req.user._id;
     console.log('Getting contests for user:', user);
     const contests = await Contest.find({ user });
     console.log('Found contests:', contests.length);
@@ -31,7 +31,7 @@ export const getContests = async (req, res) => {
 // Update a contest
 export const updateContest = async (req, res) => {
   try {
-    const user = req.user.userId;
+    const user = req.user._id;
     const { id } = req.params;
     const updates = req.body;
     const contest = await Contest.findOneAndUpdate({ _id: id, user }, updates, { new: true });
@@ -45,7 +45,7 @@ export const updateContest = async (req, res) => {
 // Delete a contest
 export const deleteContest = async (req, res) => {
   try {
-    const user = req.user.userId;
+    const user = req.user._id;
     const { id } = req.params;
     const contest = await Contest.findOneAndDelete({ _id: id, user });
     if (!contest) return res.status(404).json({ message: 'Contest not found' });
@@ -58,14 +58,14 @@ export const deleteContest = async (req, res) => {
 // Toggle reminder for a contest
 export const toggleReminder = async (req, res) => {
   try {
-    const user = req.user.userId;
+    const user = req.user._id;
     const { id } = req.params;
     const contest = await Contest.findOne({ _id: id, user });
     if (!contest) return res.status(404).json({ message: 'Contest not found' });
-    
+
     contest.reminderSet = !contest.reminderSet;
     await contest.save();
-    
+
     res.json({ contest });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -76,7 +76,7 @@ export const toggleReminder = async (req, res) => {
 export const getLeetCodeContests = async (req, res) => {
   try {
     console.log('Fetching LeetCode contests...');
-    
+
     // LeetCode doesn't have a public API for contests. You must use web scraping or unofficial APIs.
     // For now, return an empty list to avoid fake data.
     res.json({ success: true, contests: [] });
@@ -90,11 +90,11 @@ export const getLeetCodeContests = async (req, res) => {
 export const getCodeforcesContests = async (req, res) => {
   try {
     console.log('Fetching Codeforces contests...');
-    
+
     // Codeforces has a public API
     const response = await axios.get('https://codeforces.com/api/contest.list');
     const contests = response.data.result || [];
-    
+
     // Filter upcoming contests and format them
     const upcomingContests = contests
       .filter(contest => contest.phase === 'BEFORE')
@@ -120,7 +120,7 @@ export const getCodeforcesContests = async (req, res) => {
 export const getCodeChefContests = async (req, res) => {
   try {
     console.log('Fetching CodeChef contests...');
-    
+
     // CodeChef doesn't have a public API for contests. You must use web scraping or unofficial APIs.
     // For now, return an empty list to avoid fake data.
     res.json({ success: true, contests: [] });
@@ -133,37 +133,53 @@ export const getCodeChefContests = async (req, res) => {
 // Save real-time contests to user's database
 export const saveRealTimeContests = async (req, res) => {
   try {
-    const user = req.user.userId;
+    const user = req.user._id;
     const { contests } = req.body;
-    
+    if (!contests || !Array.isArray(contests)) {
+      return res.status(400).json({ success: false, message: 'Invalid contests data' });
+    }
+
     // Clear existing contests for this user
     await Contest.deleteMany({ user: user });
-    
-    // Save new contests
+
+    // Save new contests - only include fields defined in the schema
     const contestsWithUser = contests.map(contest => ({
-      ...contest,
+      name: contest.name,
+      platform: contest.platform,
+      startTime: new Date(contest.startTime),
+      endTime: new Date(contest.endTime),
+      url: contest.url,
+      difficulty: contest.difficulty || 'Intermediate',
+      participants: contest.participants || 0,
+      reminderSet: contest.reminderSet || false,
       user: user
     }));
-    
+
+    console.log(`Saving ${contestsWithUser.length} contests for user ${user}`);
     const savedContests = await Contest.insertMany(contestsWithUser);
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       message: `Saved ${savedContests.length} contests`,
-      contests: savedContests 
+      contests: savedContests
     });
   } catch (err) {
     console.error('Error saving real-time contests:', err);
-    res.status(500).json({ success: false, message: 'Failed to save contests' });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to save contests',
+      error: err.message,
+      details: err.errors // Mongoose validation errors
+    });
   }
 };
 
 // Manual seed contests for testing
 export const seedContests = async (req, res) => {
   try {
-    const user = req.user.userId;
+    const user = req.user._id;
     console.log('Manual seeding contests for user:', user);
-    
+
     const contestsData = [
       {
         name: "LeetCode Weekly Contest 375",
@@ -224,14 +240,14 @@ export const seedContests = async (req, res) => {
 
     // Clear existing contests for this user
     await Contest.deleteMany({ user: user });
-    
+
     // Insert new contests
     const result = await Contest.insertMany(contestsData);
     console.log(`✅ Manual seeding successful! Created ${result.length} contests for user ${user}`);
-    
-    res.json({ 
+
+    res.json({
       message: `Successfully seeded ${result.length} contests`,
-      contests: result 
+      contests: result
     });
   } catch (err) {
     console.error('❌ Error in manual seeding:', err);

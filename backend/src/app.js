@@ -1,6 +1,13 @@
 import express from 'express';
 import dotenv from 'dotenv';
 dotenv.config();
+
+// Environment variable health check
+console.log('--- Environment Check ---');
+console.log('MONGO_URI is set:', !!process.env.MONGO_URI);
+console.log('JWT_SECRET is set:', !!process.env.JWT_SECRET);
+console.log('GEMINI_API_KEY is set:', !!process.env.GEMINI_API_KEY);
+console.log('-------------------------');
 import mongoose from 'mongoose';
 import cors from 'cors';
 import taskRoutes from './routes/task.js';

@@ -1,3 +1,7 @@
+import User from '../models/User.js';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
 // Get streak stats for the authenticated user
 export const getStreakStats = async (req, res) => {
   try {
@@ -12,12 +16,10 @@ export const getStreakStats = async (req, res) => {
       loginDates: user.loginDates || []
     });
   } catch (err) {
+    console.error('Error in getStreakStats:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
-import User from '../models/User.js';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 
 export const register = async (req, res) => {
   try {
@@ -39,6 +41,7 @@ export const register = async (req, res) => {
     const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.status(201).json({ token, user: { id: user._id, name: user.name, email: user.email } });
   } catch (err) {
+    console.error('Registration error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 
@@ -51,52 +54,87 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: 'Email and password are required.' });
     }
     // Find user
+    console.log('Login attempt for email:', email);
     const user = await User.findOne({ email });
     if (!user) {
+      console.log('User not found:', email);
       return res.status(401).json({ message: 'Invalid email or password.' });
     }
     // Check password
+    if (!user.password) {
+      console.log('User has no password set:', email);
+      return res.status(401).json({ message: 'Invalid email or password.' });
+    }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
+      console.log('Password mismatch for user:', email);
       return res.status(401).json({ message: 'Invalid email or password.' });
     }
 
     // --- Streak Logic ---
-    const today = new Date();
-    const todayDateStr = today.toISOString().slice(0, 10); // YYYY-MM-DD
-    let loginDates = user.loginDates || [];
-    // Only add if not already logged in today
-    if (!loginDates.some(d => d.toISOString().slice(0, 10) === todayDateStr)) {
-      loginDates.push(today);
-      // Sort dates ascending
-      loginDates = loginDates.sort((a, b) => new Date(a) - new Date(b));
-      // Calculate streaks
-      let streak = 1;
-      let maxStreak = user.maxStreak || 1;
-      for (let i = loginDates.length - 2; i >= 0; i--) {
-        const prev = new Date(loginDates[i]);
-        const curr = new Date(loginDates[i + 1]);
-        const diff = (curr - prev) / (1000 * 60 * 60 * 24);
-        if (diff === 1) {
-          streak++;
-        } else if (diff > 1) {
-          break;
+    try {
+      const today = new Date();
+      const todayDateStr = today.toISOString().slice(0, 10); // YYYY-MM-DD
+
+      let loginDates = user.loginDates || [];
+
+      // Ensure all dates are Date objects (MongoDB might return ISO strings)
+      const formattedDates = loginDates.map(d => new Date(d));
+
+      // Only add if not already logged in today
+      const hasLoggedInToday = formattedDates.some(d => {
+        try {
+          return d.toISOString().slice(0, 10) === todayDateStr;
+        } catch (e) {
+          return false;
         }
+      });
+
+      if (!hasLoggedInToday) {
+        formattedDates.push(today);
+        // Sort dates ascending
+        const sortedDates = formattedDates.sort((a, b) => a - b);
+
+        // Calculate streaks
+        let streak = 1;
+        let maxStreak = user.maxStreak || 1;
+
+        for (let i = sortedDates.length - 2; i >= 0; i--) {
+          const prev = new Date(sortedDates[i]);
+          const curr = new Date(sortedDates[i + 1]);
+
+          // Set both to midnight for accurate day difference
+          prev.setHours(0, 0, 0, 0);
+          curr.setHours(0, 0, 0, 0);
+
+          const diff = Math.round((curr - prev) / (1000 * 60 * 60 * 24));
+          if (diff === 1) {
+            streak++;
+          } else if (diff > 1) {
+            break;
+          }
+        }
+
+        if (streak > maxStreak) maxStreak = streak;
+
+        user.loginDates = sortedDates;
+        user.currentStreak = streak;
+        user.maxStreak = maxStreak;
+        await user.save();
       }
-      if (streak > maxStreak) maxStreak = streak;
-      user.loginDates = loginDates;
-      user.currentStreak = streak;
-      user.maxStreak = maxStreak;
-      await user.save();
+    } catch (streakError) {
+      console.error('Non-blocking streak logic error:', streakError);
+      // We don't want to fail the whole login if streak calculation fails
     }
     // --- End Streak Logic ---
 
     // Create JWT
-    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    console.log('Generating token for user:', user._id);
+    const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.status(200).json({
       token,
       user: {
-        id: user._id,
+        id: user._id.toString(),
         name: user.name,
         email: user.email,
         currentStreak: user.currentStreak,
@@ -104,6 +142,7 @@ export const login = async (req, res) => {
       }
     });
   } catch (err) {
+    console.error('Detailed Login Error:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };

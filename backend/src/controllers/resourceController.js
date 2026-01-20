@@ -5,7 +5,7 @@ import Resource from '../models/Resource.js';
 export const createResource = async (req, res) => {
   try {
     const { title, description, type, url, category, tags, difficulty, isPremium } = req.body;
-    // const user = req.user.userId; // Commented out for now if auth is optional or mixed
+    // const user = req.user._id; // Fixed naming convention
 
     const resource = new Resource({
       title,
