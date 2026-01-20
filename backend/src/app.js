@@ -1,7 +1,8 @@
 import express from 'express';
+import dotenv from 'dotenv';
+dotenv.config();
 import mongoose from 'mongoose';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import taskRoutes from './routes/task.js';
 import authRoutes from './routes/auth.js';
 import careerPathRoutes from './routes/careerPath.js';
@@ -14,7 +15,6 @@ import codeforcesRoutes from './routes/codeforces.js';
 import forumRoutes from './routes/forum.js';
 import aiRoutes from './routes/ai.routes.js';
 import seedCareerPaths from './seed/careerPathsSeed.js';
-dotenv.config();
 
 const app = express();
 

@@ -1,9 +1,9 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Initialize Gemini API
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
 export const chatWithAI = async (req, res) => {
+    // Initialize Gemini API inside the handler to ensure process.env is loaded
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
     try {
         const { message, history } = req.body;
 
@@ -19,27 +19,43 @@ export const chatWithAI = async (req, res) => {
             });
         }
 
-        // For simplicity, we use the gemini-pro model
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        // Use gemini-flash-latest model
+        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
         // Construct chat history if provided, or start fresh
-        // Note: Gemini API expects history in specific format { role: 'user'|'model', parts: string }
         const chat = model.startChat({
             history: history || [],
             generationConfig: {
-                maxOutputTokens: 500,
+                maxOutputTokens: 1000,
             },
         });
 
         const result = await chat.sendMessage(message);
-        const response = result.response;
-        const text = response.text();
+        const response = await result.response;
 
+        // Handle potential blocking or empty response
+        if (response.promptFeedback?.blockReason) {
+            return res.status(400).json({
+                message: 'Response was blocked by safety filters',
+                reason: response.promptFeedback.blockReason
+            });
+        }
+
+        const text = response.text();
         res.json({ response: text });
     } catch (error) {
         console.error('Error in chatWithAI:', error);
+
+        // Provide more helpful error messages for common API issues
+        let errorMessage = 'Failed to generate response';
+        if (error.message?.includes('API key')) {
+            errorMessage = 'Invalid or expired API key. Please check the backend configuration.';
+        } else if (error.message?.includes('model not found')) {
+            errorMessage = 'The AI model is currently unavailable. Please try again later.';
+        }
+
         res.status(500).json({
-            message: 'Failed to generate response',
+            message: errorMessage,
             error: error.message
         });
     }
