@@ -1,1 +1,5 @@
-/* /index.html 200
+# Static Assets - explicitly permit if they exist
+/assets/*  /assets/:splat  200
+
+# SPA Routing - catch-all fallback to index.html
+/*  /index.html  200
