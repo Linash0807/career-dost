@@ -320,7 +320,7 @@ export function ContestCalendar() {
   return (
     <div>
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Card className="p-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg">
           <div className="flex items-center justify-between">
             <div>
@@ -367,7 +367,7 @@ export function ContestCalendar() {
 
       {/* Controls */}
       <Card className="p-4 bg-white/80 backdrop-blur-sm border border-white/20 shadow-lg">
-        <div className="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
+          <div className="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <Filter className="w-4 h-4 text-gray-600" />
@@ -395,7 +395,7 @@ export function ContestCalendar() {
               <option value="Advanced">Advanced</option>
             </select>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 flex-wrap md:flex-nowrap">
             <Button
               variant={viewMode === 'list' ? 'default' : 'outline'}
               size="sm"

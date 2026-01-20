@@ -230,8 +230,8 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
             <Target className="w-5 h-5 mr-2 text-primary" />
             Your Career Paths
           </h2>
-          <Button 
-            onClick={() => onNavigate('career')} 
+          <Button
+            onClick={() => onNavigate('career')}
             variant="outline"
             className="flex items-center gap-2"
           >
@@ -239,7 +239,7 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
-        
+
         {careerPaths && careerPaths.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {careerPaths.slice(0, 3).map((path) => (
@@ -342,11 +342,10 @@ export const Dashboard = ({ onNavigate }: DashboardProps) => {
                 className="flex items-center justify-between p-3 bg-background rounded-lg border border-border hover:cursor-pointer"
               >
                 <div className="flex items-center space-x-3">
-                  <div className={`w-4 h-4 rounded-full border-2 ${
-                    task.completed
+                  <div className={`w-4 h-4 rounded-full border-2 ${task.completed
                       ? 'bg-success border-success'
                       : 'border-muted-foreground'
-                  }`}>
+                    }`}>
                     {task.completed && <div className="w-full h-full rounded-full bg-success" />}
                   </div>
                   <div>

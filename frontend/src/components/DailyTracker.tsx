@@ -4,12 +4,12 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Plus, 
-  CheckCircle, 
-  Circle, 
-  Clock, 
-  Star, 
+import {
+  Plus,
+  CheckCircle,
+  Circle,
+  Clock,
+  Star,
   Trash2,
   Calendar,
   Target,
@@ -139,8 +139,8 @@ export const DailyTracker = () => {
     }
   };
 
-  const filteredTasks = filterCategory === 'All' 
-    ? tasks 
+  const filteredTasks = filterCategory === 'All'
+    ? tasks
     : tasks.filter(task => task.category === filterCategory);
 
   const completedToday = tasks.filter(task => task.completed).length;
@@ -173,154 +173,140 @@ export const DailyTracker = () => {
 
       {/* Stats & Heatmap Row */}
       <div className="mb-6">
-        <Card className="p-4 w-full">
-          <div className="flex flex-row items-center gap-8">
+        <Card className="p-6 w-full bg-gradient-card shadow-card">
+          <div className="flex flex-col lg:flex-row gap-8 lg:items-start">
             {/* Heatmap Section */}
-            <div className="flex flex-col items-center justify-cent
-            er">
-              <h3 className="text-lg font-semibold mb-2">Streak</h3>
-              {/* Filter loginDates for selected range */}
-              {(() => {
-                // Calculate the start/end for the selected 6-month phase
-                const now = new Date();
-                // If today is not the 1st, include today in the heatmap range
-                let end;
-                let lastMonth = now.getMonth();
-                let lastMonthYear = now.getFullYear();
-                if (now.getDate() === 1) {
-                  // If today is the 1st, use previous month as end
-                  lastMonth--;
-                  if (lastMonth < 0) {
-                    lastMonth = 11;
-                    lastMonthYear--;
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-foreground">Activity Heatmap</h3>
+                </div>
+                <div className="flex items-center gap-3">
+                  <select
+                    className="px-3 py-1.5 rounded text-xs font-medium border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    value={heatmapPhase}
+                    onChange={e => setHeatmapPhase(Number(e.target.value))}
+                  >
+                    {[0, 1, 2].map(phase => {
+                      const now = new Date();
+                      let lastMonth = now.getMonth() - 6 * phase;
+                      let lastMonthYear = now.getFullYear();
+                      if (now.getDate() === 1) {
+                        lastMonth--;
+                        if (lastMonth < 0) {
+                          lastMonth = 11;
+                          lastMonthYear--;
+                        }
+                      }
+                      const endDate = new Date(lastMonthYear, lastMonth + 1, 0);
+                      const startMonth = lastMonth - 5;
+                      let startYear = lastMonthYear;
+                      let startMonthAdjusted = startMonth;
+                      if (startMonth < 0) {
+                        startYear -= 1;
+                        startMonthAdjusted = 12 + startMonth;
+                      }
+                      const startDate = new Date(startYear, startMonthAdjusted, 1);
+                      const startLabel = `${startDate.toLocaleString('default', { month: 'short' })} ${startDate.getFullYear()}`;
+                      const endLabel = `${endDate.toLocaleString('default', { month: 'short' })} ${endDate.getFullYear()}`;
+                      return (
+                        <option key={phase} value={phase}>
+                          {startLabel} - {endLabel}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              </div>
+
+              <div className="bg-background/50 rounded-xl p-4 border border-border/50">
+                {(() => {
+                  const now = new Date();
+                  let end;
+                  let lastMonth = now.getMonth();
+                  let lastMonthYear = now.getFullYear();
+                  if (now.getDate() === 1) {
+                    lastMonth--;
+                    if (lastMonth < 0) {
+                      lastMonth = 11;
+                      lastMonthYear--;
+                    }
+                    end = new Date(lastMonthYear, lastMonth + 1, 0);
+                  } else {
+                    end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                   }
-                  end = new Date(lastMonthYear, lastMonth + 1, 0); // last day of lastMonth
-                } else {
-                  // Otherwise, end is today
-                  end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                }
-                // Calculate start as the first day 6 months before end
-                const startMonth = end.getMonth() - 5;
-                let startYear = end.getFullYear();
-                let startMonthAdjusted = startMonth;
-                if (startMonth < 0) {
-                  startYear -= 1;
-                  startMonthAdjusted = 12 + startMonth;
-                }
-                const start = new Date(startYear, startMonthAdjusted, 1);
-                // Normalize all loginDates to YYYY-MM-DD
-                let normalizedLoginDates = loginDates.map(d => {
-                  return typeof d === 'string' && d.length === 10 ? d : new Date(d).toISOString().slice(0, 10);
-                });
-                // Filter for range
-                let filteredDates = normalizedLoginDates.filter(d => {
-                  const date = new Date(d);
-                  return date >= start && date <= end;
-                });
-                // Always include today in the heatmap
-                const todayStr = now.toISOString().slice(0, 10);
-                if (!filteredDates.includes(todayStr)) {
-                  filteredDates = [...filteredDates, todayStr];
-                }
-                // Remove duplicate dates to avoid duplicate keys
-                const uniqueDates = Array.from(new Set(filteredDates));
-                return <div className="w-full mx-auto"><HeapMap loginDates={uniqueDates} daysCount={183} /></div>;
-              })()}
-              <div className="flex gap-4 justify-center mt-4">
-                <select
-                  className="px-4 py-2 rounded text-xs font-semibold border border-border bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  value={heatmapPhase}
-                  onChange={e => setHeatmapPhase(Number(e.target.value))}
-                >
-                  {[0, 1, 2].map(phase => {
-                    const now = new Date();
-                    // For each phase, calculate the last completed month and year
-                    let lastMonth = now.getMonth() - 6 * phase;
-                    let lastMonthYear = now.getFullYear();
-                    if (now.getDate() === 1) {
-                      lastMonth--;
-                      if (lastMonth < 0) {
-                        lastMonth = 11;
-                        lastMonthYear--;
-                      }
-                    }
-                    // Calculate end as the last day of the last completed month
-                    const endDate = new Date(lastMonthYear, lastMonth + 1, 0);
-                    // Calculate start as the first day 6 months before end
-                    const startMonth = lastMonth - 5;
-                    let startYear = lastMonthYear;
-                    let startMonthAdjusted = startMonth;
-                    if (startMonth < 0) {
-                      startYear -= 1;
-                      startMonthAdjusted = 12 + startMonth;
-                    }
-                    const startDate = new Date(startYear, startMonthAdjusted, 1);
-                    const startLabel = `${startDate.toLocaleString('default', { month: 'short' })} ${startDate.getFullYear()}`;
-                    const endLabel = `${endDate.toLocaleString('default', { month: 'short' })} ${endDate.getFullYear()}`;
-                    return (
-                      <option key={phase} value={phase}>
-                        {startLabel} - {endLabel}
-                      </option>
-                    );
-                  })}
-                </select>
-                <span className="text-xs text-muted-foreground">
-                  {(() => {
-                    const now = new Date();
-                    // Show the range for the selected phase
-                    let lastMonth = now.getMonth() - 6 * heatmapPhase;
-                    let lastMonthYear = now.getFullYear();
-                    if (now.getDate() === 1) {
-                      lastMonth--;
-                      if (lastMonth < 0) {
-                        lastMonth = 11;
-                        lastMonthYear--;
-                      }
-                    }
-                    const endDate = new Date(lastMonthYear, lastMonth + 1, 0);
-                    const startMonth = lastMonth - 5;
-                    let startYear = lastMonthYear;
-                    let startMonthAdjusted = startMonth;
-                    if (startMonth < 0) {
-                      startYear -= 1;
-                      startMonthAdjusted = 12 + startMonth;
-                    }
-                    const startDate = new Date(startYear, startMonthAdjusted, 1);
-                    const startLabel = `${startDate.toLocaleString('default', { month: 'short' })} ${startDate.getFullYear()}`;
-                    const endLabel = `${endDate.toLocaleString('default', { month: 'short' })} ${endDate.getFullYear()}`;
-                    return `${startLabel} - ${endLabel}`;
-                  })()}
-                </span>
+                  const startMonth = end.getMonth() - 5;
+                  let startYear = end.getFullYear();
+                  let startMonthAdjusted = startMonth;
+                  if (startMonth < 0) {
+                    startYear -= 1;
+                    startMonthAdjusted = 12 + startMonth;
+                  }
+                  const start = new Date(startYear, startMonthAdjusted, 1);
+                  let normalizedLoginDates = loginDates.map(d => {
+                    return typeof d === 'string' && d.length === 10 ? d : new Date(d).toISOString().slice(0, 10);
+                  });
+                  let filteredDates = normalizedLoginDates.filter(d => {
+                    const date = new Date(d);
+                    return date >= start && date <= end;
+                  });
+                  const todayStr = now.toISOString().slice(0, 10);
+                  if (!filteredDates.includes(todayStr)) {
+                    filteredDates = [...filteredDates, todayStr];
+                  }
+                  const uniqueDates = Array.from(new Set(filteredDates));
+                  return <HeapMap loginDates={uniqueDates} daysCount={183} />;
+                })()}
               </div>
             </div>
+
             {/* Quick Stats Section */}
-            <div className="flex flex-col items-center justify-center min-w-[220px]">
-              <h3 className="text-lg font-semibold text-foreground mb-4">Quick Stats</h3>
-              <div className="space-y-4 w-full">
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Best Day This Week</span>
-                  <span className="text-sm font-medium text-foreground">{weeklyStats.bestDay} tasks</span>
+            <div className="lg:w-80 flex flex-col gap-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Target className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-semibold text-foreground">Quick Stats</h3>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3">
+                <div className="p-3 rounded-lg bg-background/50 border border-border/50 flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Streak</span>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-100 text-orange-700 font-bold text-xs border border-orange-200">
+                    <Star className="w-3.5 h-3.5 fill-orange-500" />
+                    {todayStreak} Days
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Most Active Category</span>
-                  <Badge variant="secondary">DSA</Badge>
-                </div>
-                <div className="flex justify-between">
+
+                <div className="p-3 rounded-lg bg-background/50 border border-border/50 flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Completion Rate</span>
-                  <span className="text-sm font-medium text-success">{Math.round(completionPercentage)}%</span>
+                  <span className={`text-sm font-bold ${completionPercentage > 70 ? 'text-green-600' : 'text-blue-600'}`}>
+                    {Math.round(completionPercentage)}%
+                  </span>
                 </div>
-                <div className="flex flex-wrap gap-2 mt-2 justify-center">
-                  <div className="flex items-center gap-2 px-3 py-1 rounded bg-gradient-primary text-white text-xs">
-                    <Star className="w-4 h-4" />
-                    <span>Current Streak: {todayStreak} days</span>
+
+                <div className="p-3 rounded-lg bg-background/50 border border-border/50">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-muted-foreground">Weekly Activity</span>
+                    <span className="text-xs font-medium text-foreground">{weeklyStats.tasksCompleted} tasks</span>
                   </div>
-                  <div className="flex items-center gap-2 px-3 py-1 rounded bg-gradient-success text-white text-xs">
-                    <TrendingUp className="w-4 h-4" />
-                    <span>Weekly Total: {weeklyStats.tasksCompleted}</span>
+                  <div className="flex gap-2">
+                    <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-primary"
+                        style={{ width: `${Math.min(100, (weeklyStats.tasksCompleted / 21) * 100)}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 px-3 py-1 rounded bg-gradient-secondary text-white text-xs">
-                    <Calendar className="w-4 h-4" />
-                    <span>Daily Avg: {weeklyStats.avgDaily}</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-3 rounded-lg bg-background/50 border border-border/50 text-center">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Weekly Avg</p>
+                    <p className="text-lg font-bold text-foreground">{weeklyStats.avgDaily}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-background/50 border border-border/50 text-center">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Best Day</p>
+                    <p className="text-lg font-bold text-foreground">{weeklyStats.bestDay}</p>
                   </div>
                 </div>
               </div>
@@ -404,11 +390,10 @@ export const DailyTracker = () => {
           {filteredTasks.map((task) => (
             <div
               key={task._id}
-              className={`flex items-center justify-between p-4 border rounded-lg transition-all ${
-                task.completed 
-                  ? 'bg-success/10 border-success/20' 
+              className={`flex items-center justify-between p-4 border rounded-lg transition-all ${task.completed
+                  ? 'bg-success/10 border-success/20'
                   : 'bg-background border-border hover:border-primary/50'
-              }`}
+                }`}
             >
               <div className="flex items-center space-x-4">
                 <Button
@@ -423,22 +408,21 @@ export const DailyTracker = () => {
                     <Circle className="w-5 h-5 text-muted-foreground hover:text-primary" />
                   )}
                 </Button>
-                
+
                 <div className="flex-1">
-                  <p className={`text-sm font-medium ${
-                    task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
-                  }`}>
+                  <p className={`text-sm font-medium ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                    }`}>
                     {task.title}
                   </p>
                   <div className="flex items-center space-x-2 mt-1">
-                    <Badge 
-                      variant="secondary" 
+                    <Badge
+                      variant="secondary"
                       className={`text-xs text-white ${categoryColors[task.category]}`}
                     >
                       {task.category}
                     </Badge>
-                    <Badge 
-                      variant="outline" 
+                    <Badge
+                      variant="outline"
                       className={`text-xs text-white ${priorityColors[task.priority]}`}
                     >
                       {task.priority}
@@ -458,7 +442,7 @@ export const DailyTracker = () => {
                   </div>
                 </div>
               </div>
-              
+
               <Button
                 variant="ghost"
                 size="sm"

@@ -4,13 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Target, 
-  CheckCircle, 
-  Circle, 
-  Code, 
-  Database, 
-  Brain, 
+import {
+  Target,
+  CheckCircle,
+  Circle,
+  Code,
+  Database,
+  Brain,
   Laptop,
   ChevronRight,
   Plus,
@@ -114,7 +114,7 @@ export const CareerPath = () => {
 
   const toggleMilestoneCompletion = async (milestoneId: string) => {
     if (!selectedPath) return;
-    
+
     try {
       const updatedMilestones = selectedPath.milestones.map(milestone => {
         if (milestone._id === milestoneId) {
@@ -263,9 +263,8 @@ export const CareerPath = () => {
                 {careerPaths.map((path) => (
                   <div
                     key={path._id}
-                    className={`relative p-3 rounded-lg cursor-pointer transition-all hover:bg-accent ${
-                      selectedPath?._id === path._id ? 'bg-accent border-2 border-primary' : 'border border-border'
-                    }`}
+                    className={`relative p-3 rounded-lg cursor-pointer transition-all hover:bg-accent ${selectedPath?._id === path._id ? 'bg-accent border-2 border-primary' : 'border border-border'
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{path.icon}</span>
@@ -377,6 +376,43 @@ export const CareerPath = () => {
                     </div>
                   </TabsContent>
                   {/* ...existing code for milestones tab... */}
+                  <TabsContent value="milestones" className="mt-6">
+                    <div className="space-y-4">
+                      {selectedPath.milestones.map((milestone, index) => (
+                        <Card key={milestone._id || index} className={`border transition-colors ${milestone.completed ? 'bg-green-50 border-green-200' : 'border-border'}`}>
+                          <CardContent className="p-4 flex items-start gap-4">
+                            <div className="pt-1">
+                              <Button
+                                variant={milestone.completed ? "default" : "outline"}
+                                size="sm"
+                                className={`rounded-full w-8 h-8 p-0 ${milestone.completed ? "bg-green-600 hover:bg-green-700" : ""}`}
+                                onClick={() => toggleMilestoneCompletion(milestone._id)}
+                              >
+                                {milestone.completed ? <CheckCircle className="w-5 h-5" /> : <Circle className="w-5 h-5 text-muted-foreground" />}
+                              </Button>
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-1">
+                                <h4 className={`font-semibold text-base ${milestone.completed ? 'text-green-800 line-through' : 'text-foreground'}`}>
+                                  {milestone.title}
+                                </h4>
+                                {milestone.completed && <Badge className="bg-green-200 text-green-800 hover:bg-green-300">Completed</Badge>}
+                              </div>
+                              <p className="text-muted-foreground text-sm mb-2">{milestone.description}</p>
+
+                              <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3" /> {milestone.estimatedTime}
+                                </span>
+                                <span>|</span>
+                                <span className="font-medium">Resources: {milestone.resources.length}</span>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </TabsContent>
                 </Tabs>
               </CardContent>
             </Card>
